@@ -6,52 +6,45 @@
 /*   By: mhorpe <mhorpe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/09/23 16:12:45 by mhorpe            #+#    #+#             */
-/*   Updated: 2019/09/27 18:05:58 by mhorpe           ###   ########.fr       */
+/*   Updated: 2019/10/03 13:07:17 by mhorpe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "libft/libft.h"
 #include "get_next_line.h"
 
-/*static int		temp_function_one(int i, char *temp)
+static int		temp_function_one(int i)
 {
-	ft_strdel(&temp);
 	if (i == -1)
-		return (i);
+		return (-1);
 	return (0);
 }
 
-static void		temp_function_two(char *fds, char ***line)
+int	get_next_line(const int fd, char **line)
 {
-	int				test;
+	static char	*c[2147483647];
+	char		buffer[BUFF_SIZE + 1];
+	char		*tmp;
+	ssize_t		i;
+	int			endl;
 
-	test = ft_strchr(fds, '\n') > 0;
-	if (test)
-		**line = ft_strsub(fds, 0, ft_strchr(fds, '\0') - fds);
-	else
-		**line = ft_strdup(fds);
-	*fds = *ft_strsub(fds, (unsigned int)(ft_strlen(**line) + test),\
-		(ft_strlen(fds) - (ft_strlen(**line) + test)));
-}*/
-
-int				get_next_line(const int fd, char **line)
-{
-	static char		*fds[10000];
-	char			buff[BUFF_SIZE + 1];
-	int				i;
-	char			*temp;
-
-	if (fd < 0 || !line || read(fd, buff, 0) < 0 || BUFF_SIZE < 1)
+	if (fd < 0 || (!c[fd] && !(c[fd] = ft_strnew(1))) || !line)
 		return (-1);
-	while (!ft_strchr(fds[fd], '\n') && (i = read(fd, buff, BUFF_SIZE) > 0))
+	while (!ft_strchr(c[fd], '\n') && (i = read(fd, buffer, BUFF_SIZE)) > 0)
 	{
-		buff[i] = '\0';
-		temp = fds[fd];
-		fds[fd] = ft_strjoin(fds[fd], buff);
-		free(&temp);
+		buffer[i] = '\0';
+		tmp = c[fd];
+		c[fd] = ft_strjoin(c[fd], buffer);
+		ft_strdel(&tmp);
 	}
-	/*if ((i == -1 || !*(temp = fds[fd])))
-		return (temp_function_one(i, temp));
-	temp_function_two(fds[fd], &line);
-	ft_strdel(&temp);*/
-	return (1);
+	if (i == -1 || !*(tmp = c[fd]))
+		return (temp_function_one(i));
+	if ((endl = (ft_strchr(c[fd], '\n') > 0)))
+		*line = ft_strsub(c[fd], 0, ft_strchr(c[fd], '\n') - c[fd]);
+	else
+		*line = ft_strdup(c[fd]);
+	c[fd] = ft_strsub(c[fd], (unsigned int)(ft_strlen(*line) + endl),
+			(size_t)(ft_strlen(c[fd]) - (ft_strlen(*line) + endl)));
+	ft_strdel(&tmp);
+	return (!(!c[fd] && !ft_strlen(*line)));
 }
